@@ -55,7 +55,21 @@ export default function AdminTicketDetailPage() {
       setCategory(res.data.ticket.category);
       setPriority(res.data.ticket.priority);
       setStatus(res.data.ticket.status);
-      if (res.data.ticket.aiDraft && !draft) setDraft(res.data.ticket.aiDraft);
+      if (res.data.ticket.aiDraft) {
+        setDraft(res.data.ticket.aiDraft);
+        setResponseBody((prev) => prev || res.data.ticket.aiDraft);
+      } else {
+        // Automatically present AI draft upon opening ticket as per spec
+        api.generateDraft(ticketId)
+          .then((draftRes) => {
+            if (draftRes?.data?.draft) {
+              setDraft(draftRes.data.draft);
+              setDraftMock(draftRes.data.isMock);
+              setResponseBody((prev) => prev || draftRes.data.draft);
+            }
+          })
+          .catch(() => {});
+      }
     } catch (err) {
       setError(err.message);
     } finally {

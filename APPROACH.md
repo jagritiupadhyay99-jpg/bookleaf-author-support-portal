@@ -3,7 +3,8 @@
 
 **Candidate Position:** Full-Stack Developer  
 **Assignment:** Author Support & Communication Portal (Assignment 1 of 2)  
-**Deliverable:** Architectural Approach, Trade-Offs, and Production Evolution Note
+**Deliverable:** Architectural Approach, Trade-Offs, and Production Evolution Note  
+**Live Demo:** [https://bookleaf-author-support-portal-sigma.vercel.app/login](https://bookleaf-author-support-portal-sigma.vercel.app/login) (Admin: `admin@bookleaf.demo` / `Admin@1234` | Author: `priya.sharma@email.com` / `Author@1234`)
 
 ---
 

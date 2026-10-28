@@ -4,6 +4,22 @@ A full-stack, enterprise-grade author support and operations portal built for Bo
 
 ---
 
+## 🚀 Live Demo & Evaluation Credentials
+
+- **Live URL:** [https://bookleaf-author-support-portal-sigma.vercel.app/login](https://bookleaf-author-support-portal-sigma.vercel.app/login)
+- **Pre-Seeded Data:** Fully seeded with all 10 authors and 18 books from `bookleaf_sample_data.json`
+
+| Role | Email | Password | Access / Capabilities |
+| :--- | :--- | :--- | :--- |
+| **Operations Admin** | `admin@bookleaf.demo` | `Admin@1234` | Full triage queue, date filters, priority escalation, AI copilot draft review, internal notes, assignment |
+| **Author (AUTH001)** | `priya.sharma@email.com` | `Author@1234` | 2 published books, ₹19,908 earned, ₹3,570 pending royalty, submit & view tickets |
+| **Author (AUTH002)** | `rohit.kapoor@email.com` | `Author@1234` | 2 published books, ₹57,744 earned, 1,280 copies sold |
+| **Author (AUTH007)** | `sneha.kulkarni@email.com` | `Author@1234` | 3 books, including *The Silk Route Conspiracy* in Cover Design production stage |
+
+*(All 10 sample author accounts from `AUTH001` to `AUTH010` are active with password `Author@1234`)*
+
+---
+
 ## 1. Executive Summary & Tech Stack
 
 - **Frontend:** React 18, Vite, Vanilla CSS design system (custom tokens, restrained business aesthetic, zero Tailwind overhead, accessible Inter typography, fully responsive).
@@ -100,6 +116,13 @@ Prompts are grounded strictly in the **BookLeaf Knowledge Base**:
 - If external LLM APIs fail, time out (15s threshold), or encounter rate limits, the system does not crash or block ticket submission.
 - The ticket is saved immediately, and the system falls back to an internal keyword-based heuristic classifier tagged as `[MOCK MODE]` / `heuristic fallback`.
 - Admins can manually override classification or compose responses directly without impediment.
+
+### 4. Model Choice Justification (PDF Requirement Section D.5)
+The assignment permits OpenAI, Anthropic, or any LLM API with brief justification. We implemented a unified, zero-dependency HTTP adapter defaulting to **Google Gemini Flash (`gemini-2.5-flash-lite` / `gemini-1.5-flash`)** and supporting **OpenAI (`gpt-4o-mini`)** or **Anthropic (`claude-3-haiku`)**:
+1. **Low Latency for Interactive Triage:** Gemini Flash and Claude Haiku offer sub-1.5s time-to-first-token, ensuring admin queue drafts and classification complete near-instantaneously without operational bottlenecks.
+2. **Economic Viability at Scale:** For BookLeaf's volume (1,200+ books/month and thousands of author interactions), large foundation models (GPT-4 / Claude Opus) are cost-prohibitive. Flash/Haiku-tier models cost ~95% less ($0.075 to $0.15 per 1M tokens) while exceeding the reasoning requirements for policy retrieval and category classification.
+3. **Strict Structured Output Adherence:** Handles deterministic JSON classification schemas without hallucinating extraneous markdown or unprompted actions.
+4. **Resilient Provider Independence:** Architecture avoids vendor lock-in; switching between Gemini, OpenAI, Groq, or Anthropic requires only changing an environment variable (`LLM_PROVIDER=...`).
 
 ---
 

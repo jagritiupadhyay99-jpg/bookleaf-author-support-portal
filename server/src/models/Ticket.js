@@ -61,13 +61,24 @@ const ticketSchema = new mongoose.Schema(
         uploadedAt: { type: Date, default: Date.now },
       },
     ],
+    priorityWeight: { type: Number, default: 3 }, // 1: Critical, 2: High, 3: Medium, 4: Low
+    statusWeight: { type: Number, default: 1 },   // 1: Open, 2: In Progress, 3: Resolved, 4: Closed
     lastActivityAt: { type: Date, default: Date.now },
   },
   { timestamps: true }
 );
 
-// Auto-generate ticket number before save
+const PRIORITY_WEIGHTS = { Critical: 1, High: 2, Medium: 3, Low: 4 };
+const STATUS_WEIGHTS = { Open: 1, 'In Progress': 2, Resolved: 3, Closed: 4 };
+
+// Auto-generate ticket number and maintain numeric weights before save
 ticketSchema.pre('save', async function (next) {
+  if (this.priority) {
+    this.priorityWeight = PRIORITY_WEIGHTS[this.priority] || 3;
+  }
+  if (this.status) {
+    this.statusWeight = STATUS_WEIGHTS[this.status] || 1;
+  }
   if (!this.ticketNumber) {
     try {
       const count = await mongoose.model('Ticket').countDocuments();
@@ -80,7 +91,7 @@ ticketSchema.pre('save', async function (next) {
 });
 
 ticketSchema.index({ authorUserId: 1, createdAt: -1 });
-ticketSchema.index({ status: 1, priority: 1, createdAt: 1 });
+ticketSchema.index({ statusWeight: 1, priorityWeight: 1, createdAt: 1 });
 ticketSchema.index({ category: 1 });
 ticketSchema.index({ assigneeUserId: 1 });
 

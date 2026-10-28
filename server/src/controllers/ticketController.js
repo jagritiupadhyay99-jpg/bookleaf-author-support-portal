@@ -156,7 +156,13 @@ const getAdminTickets = async (req, res, next) => {
     if (from || to) {
       filter.createdAt = {};
       if (from) filter.createdAt.$gte = new Date(from);
-      if (to) filter.createdAt.$lte = new Date(to);
+      if (to) {
+        const toDate = new Date(to);
+        if (typeof to === 'string' && to.length === 10) {
+          toDate.setHours(23, 59, 59, 999);
+        }
+        filter.createdAt.$lte = toDate;
+      }
     }
     if (search && typeof search === 'string' && search.trim()) {
       const sanitized = escapeRegex(search.trim());
@@ -167,15 +173,16 @@ const getAdminTickets = async (req, res, next) => {
     }
 
     // Build sort
+    // Priority order: Critical (1) > High (2) > Medium (3) > Low (4)
+    // Status order: Open (1) > In Progress (2) > Resolved (3) > Closed (4)
     let sortObj = {};
-    const resolvedStatuses = ['Resolved', 'Closed'];
-    if (sort === 'priority_oldest') {
-      sortObj = { priority: 1, createdAt: 1 };
+    if (sort === 'priority_oldest' || sort === 'urgent_oldest') {
+      sortObj = { priorityWeight: 1, createdAt: 1 };
     } else if (sort === 'newest') {
       sortObj = { createdAt: -1 };
     } else {
-      // Default: unresolved first, highest priority, oldest first
-      sortObj = { lastActivityAt: -1 };
+      // Default: unresolved first, most urgent, then oldest
+      sortObj = { statusWeight: 1, priorityWeight: 1, createdAt: 1 };
     }
 
     const skip = (parseInt(page) - 1) * parseInt(limit);

@@ -24,8 +24,8 @@ export default function AdminQueuePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  // Filters
-  const [filters, setFilters] = useState({ status: '', category: '', priority: '', search: '', sort: '' });
+  // Filters (status, category, priority, date range, search, sort)
+  const [filters, setFilters] = useState({ status: '', category: '', priority: '', search: '', sort: '', from: '', to: '' });
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -55,7 +55,7 @@ export default function AdminQueuePage() {
   };
 
   const clearFilters = () => {
-    setFilters({ status: '', category: '', priority: '', search: '', sort: '' });
+    setFilters({ status: '', category: '', priority: '', search: '', sort: '', from: '', to: '' });
     setPage(1);
   };
 
@@ -95,19 +95,19 @@ export default function AdminQueuePage() {
       )}
 
       {/* Unified Filter Toolbar */}
-      <div className="toolbar">
+      <div className="toolbar" style={{ flexWrap: 'wrap', gap: 8 }}>
         <input
           className="form-control"
-          placeholder="Search subject, ticket #, or author name..."
+          placeholder="Search subject, ticket #, or author..."
           value={filters.search}
           onChange={(e) => updateFilter('search', e.target.value)}
-          style={{ flex: '1 1 220px', minWidth: 200 }}
+          style={{ flex: '1 1 200px', minWidth: 180 }}
         />
         <select
           className="form-control"
           value={filters.status}
           onChange={(e) => updateFilter('status', e.target.value)}
-          style={{ flex: '0 1 140px' }}
+          style={{ flex: '0 1 130px' }}
         >
           <option value="">All Statuses</option>
           {STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
@@ -116,7 +116,7 @@ export default function AdminQueuePage() {
           className="form-control"
           value={filters.category}
           onChange={(e) => updateFilter('category', e.target.value)}
-          style={{ flex: '0 1 170px' }}
+          style={{ flex: '0 1 160px' }}
         >
           <option value="">All Categories</option>
           {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
@@ -125,20 +125,36 @@ export default function AdminQueuePage() {
           className="form-control"
           value={filters.priority}
           onChange={(e) => updateFilter('priority', e.target.value)}
-          style={{ flex: '0 1 130px' }}
+          style={{ flex: '0 1 120px' }}
         >
           <option value="">All Priorities</option>
           {PRIORITIES.map((p) => <option key={p} value={p}>{p}</option>)}
         </select>
+        <input
+          type="date"
+          className="form-control"
+          title="Filter from date"
+          value={filters.from}
+          onChange={(e) => updateFilter('from', e.target.value)}
+          style={{ flex: '0 1 125px', fontSize: '0.8rem' }}
+        />
+        <input
+          type="date"
+          className="form-control"
+          title="Filter to date"
+          value={filters.to}
+          onChange={(e) => updateFilter('to', e.target.value)}
+          style={{ flex: '0 1 125px', fontSize: '0.8rem' }}
+        />
         <select
           className="form-control"
           value={filters.sort}
           onChange={(e) => updateFilter('sort', e.target.value)}
-          style={{ flex: '0 1 140px' }}
+          style={{ flex: '0 1 160px' }}
         >
-          <option value="">Default order</option>
+          <option value="">Default (Urgent first)</option>
+          <option value="priority_oldest">Urgent &amp; Oldest</option>
           <option value="newest">Newest first</option>
-          <option value="priority_oldest">Priority + Age</option>
         </select>
         <button className="btn btn-secondary btn-sm" onClick={clearFilters}>
           Reset
@@ -174,54 +190,73 @@ export default function AdminQueuePage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {tickets.map((ticket) => (
-                    <tr key={ticket._id}>
-                      <td className="text-small text-muted" style={{ fontVariantNumeric: 'tabular-nums', fontWeight: 600 }}>
-                        {ticket.ticketNumber}
-                      </td>
-                      <td>
-                        <div style={{ fontWeight: 600, color: 'var(--color-text-main)' }}>
-                          {ticket.authorUserId?.name || 'Unknown Author'}
-                        </div>
-                        <div className="text-small text-muted" style={{ fontSize: '0.725rem' }}>
-                          {ticket.bookId ? `Book: ${ticket.bookId}` : 'General Inquiry'}
-                        </div>
-                      </td>
-                      <td>
-                        <Link to={`/admin/tickets/${ticket._id}`} className="table-link" style={{ fontWeight: 500 }}>
-                          {ticket.subject}
-                        </Link>
-                      </td>
-                      <td>
-                        <span className="text-small">{ticket.category}</span>
-                        {ticket.categorySource === 'ai' && (
-                          <span className="badge badge-ai" style={{ marginLeft: 4, fontSize: '0.625rem' }}>AI</span>
-                        )}
-                        {ticket.categorySource === 'admin' && (
-                          <span className="badge badge-admin" style={{ marginLeft: 4, fontSize: '0.625rem' }}>Manual</span>
-                        )}
-                      </td>
-                      <td>
-                        <span className={priorityClass(ticket.priority)}>{ticket.priority}</span>
-                        {ticket.prioritySource === 'ai' && (
-                          <span className="badge badge-ai" style={{ marginLeft: 4, fontSize: '0.625rem' }}>AI</span>
-                        )}
-                      </td>
-                      <td>
-                        <span className={statusClass(ticket.status)}>{ticket.status}</span>
-                      </td>
-                      <td className="text-small">
-                        {ticket.assigneeUserId?.name ? (
-                          <span style={{ fontWeight: 500 }}>{ticket.assigneeUserId.name}</span>
-                        ) : (
-                          <span className="text-muted" style={{ fontStyle: 'italic' }}>Unassigned</span>
-                        )}
-                      </td>
-                      <td className="text-small text-muted" style={{ fontVariantNumeric: 'tabular-nums' }}>
-                        {timeAgo(ticket.createdAt)}
-                      </td>
-                    </tr>
-                  ))}
+                  {tickets.map((ticket) => {
+                    const isCritical = ticket.priority === 'Critical';
+                    const isUnresolved = ticket.status === 'Open' || ticket.status === 'In Progress';
+                    const isAging = isUnresolved && (Date.now() - new Date(ticket.createdAt).getTime()) > 24 * 3600 * 1000;
+
+                    return (
+                      <tr
+                        key={ticket._id}
+                        style={isCritical && isUnresolved ? { background: '#fff7ed', borderLeft: '3px solid #dc2626' } : {}}
+                      >
+                        <td className="text-small text-muted" style={{ fontVariantNumeric: 'tabular-nums', fontWeight: 600 }}>
+                          {ticket.ticketNumber}
+                        </td>
+                        <td>
+                          <div style={{ fontWeight: 600, color: 'var(--color-text-main)' }}>
+                            {ticket.authorUserId?.name || 'Unknown Author'}
+                          </div>
+                          <div className="text-small text-muted" style={{ fontSize: '0.725rem' }}>
+                            {ticket.bookId ? `Book: ${ticket.bookId}` : 'General Inquiry'}
+                          </div>
+                        </td>
+                        <td>
+                          <Link to={`/admin/tickets/${ticket._id}`} className="table-link" style={{ fontWeight: 500 }}>
+                            {ticket.subject}
+                          </Link>
+                        </td>
+                        <td>
+                          <span className="text-small">{ticket.category}</span>
+                          {ticket.categorySource === 'ai' && (
+                            <span className="badge badge-ai" style={{ marginLeft: 4, fontSize: '0.625rem' }}>AI</span>
+                          )}
+                          {ticket.categorySource === 'admin' && (
+                            <span className="badge badge-admin" style={{ marginLeft: 4, fontSize: '0.625rem' }}>Manual</span>
+                          )}
+                        </td>
+                        <td>
+                          <span className={priorityClass(ticket.priority)}>{ticket.priority}</span>
+                          {ticket.prioritySource === 'ai' && (
+                            <span className="badge badge-ai" style={{ marginLeft: 4, fontSize: '0.625rem' }}>AI</span>
+                          )}
+                          {isCritical && isUnresolved && (
+                            <span className="badge" style={{ marginLeft: 4, background: '#fee2e2', color: '#991b1b', border: '1px solid #f87171', fontSize: '0.625rem', fontWeight: 700 }}>
+                              SLA ALERT
+                            </span>
+                          )}
+                        </td>
+                        <td>
+                          <span className={statusClass(ticket.status)}>{ticket.status}</span>
+                        </td>
+                        <td className="text-small">
+                          {ticket.assigneeUserId?.name ? (
+                            <span style={{ fontWeight: 500 }}>{ticket.assigneeUserId.name}</span>
+                          ) : (
+                            <span className="text-muted" style={{ fontStyle: 'italic' }}>Unassigned</span>
+                          )}
+                        </td>
+                        <td className="text-small text-muted" style={{ fontVariantNumeric: 'tabular-nums' }}>
+                          <div>{timeAgo(ticket.createdAt)}</div>
+                          {isAging && (
+                            <span style={{ color: '#b45309', fontSize: '0.675rem', fontWeight: 600 }}>
+                              &gt;24h pending
+                            </span>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
