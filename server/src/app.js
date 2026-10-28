@@ -13,8 +13,9 @@ const adminRoutes = require('./routes/admin');
 
 const app = express();
 
-// Connect to MongoDB
-connectDB();
+if (process.env.JWT_SECRET) {
+  process.env.JWT_SECRET = process.env.JWT_SECRET.trim().replace(/[\r\n\t]+/g, '');
+}
 
 // Security headers
 app.use(helmet());
@@ -36,6 +37,16 @@ app.use(express.urlencoded({ extended: true, limit: '1mb' }));
 
 // Health check
 app.get('/api/health', (_req, res) => res.json({ status: 'ok', timestamp: new Date().toISOString() }));
+
+// Ensure MongoDB is connected before handling any route
+app.use(async (req, res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (err) {
+    next(err);
+  }
+});
 
 // Routes
 app.use('/api/auth', authRoutes);
