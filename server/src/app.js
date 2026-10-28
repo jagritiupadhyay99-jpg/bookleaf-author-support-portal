@@ -24,7 +24,7 @@ const allowedOrigins = (process.env.CLIENT_ORIGIN || 'http://localhost:5173').sp
 app.use(cors({
   origin: (origin, cb) => {
     // Allow requests with no origin (curl, Postman, same-origin)
-    if (!origin || allowedOrigins.includes(origin)) return cb(null, true);
+    if (!origin || allowedOrigins.includes(origin) || origin.endsWith('.vercel.app')) return cb(null, true);
     cb(new Error(`CORS: origin ${origin} not allowed`));
   },
   credentials: true,
