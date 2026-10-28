@@ -4,10 +4,11 @@ A full-stack, enterprise-grade author support and operations portal built for Bo
 
 ---
 
-## 🚀 Live Demo & Evaluation Credentials
+## 🚀 Live Demo & Video Walkthrough
 
-- **Live URL:** [https://bookleaf-author-support-portal-sigma.vercel.app/login](https://bookleaf-author-support-portal-sigma.vercel.app/login)
-- **Pre-Seeded Data:** Fully seeded with all 10 authors and 18 books from `bookleaf_sample_data.json`
+- **Live Application URL:** [https://bookleaf-author-support-portal-sigma.vercel.app/login](https://bookleaf-author-support-portal-sigma.vercel.app/login)
+- **Video Walkthrough Demo:** [Watch End-to-End Demo Video](#) *(Comprehensive walkthrough showing Author portal, book catalog, ticket creation with attachments, live 8-second polling, and Admin operations queue with AI Policy Copilot drafting)*
+- **Pre-Seeded Database:** Fully seeded with all 10 authors and 18 books from `bookleaf_sample_data.json`
 
 | Role | Email | Password | Access / Capabilities |
 | :--- | :--- | :--- | :--- |
