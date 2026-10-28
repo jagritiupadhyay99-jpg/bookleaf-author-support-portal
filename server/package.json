@@ -1,29 +1,27 @@
 {
-    "name":  "bookleaf-server",
-    "version":  "1.0.0",
-    "description":  "BookLeaf Author Support Portal — Express API",
-    "main":  "src/server.js",
-    "scripts":  {
-                    "start":  "node src/server.js",
-                    "dev":  "node --watch src/server.js",
-                    "seed":  "node seed/seed.js",
-                    "test":  "node --test tests/**/*.test.js",
-                    "reset-passwords":  "node seed/resetPasswords.js"
-                },
-    "keywords":  [
-
-                 ],
-    "author":  "",
-    "license":  "ISC",
-    "type":  "commonjs",
-    "dependencies":  {
-                         "bcryptjs":  "^2.4.3",
-                         "cors":  "^2.8.5",
-                         "dotenv":  "^16.5.0",
-                         "express":  "^5.1.0",
-                         "express-validator":  "^7.2.1",
-                         "helmet":  "^8.0.0",
-                         "jsonwebtoken":  "^9.0.2",
-                         "mongoose":  "^8.14.0"
-                     }
+  "name": "bookleaf-server",
+  "version": "1.0.0",
+  "description": "BookLeaf Author Support Portal — Express API",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "seed": "node seed/seed.js",
+    "reset-passwords": "node seed/resetPasswords.js",
+    "test": "node --test tests/**/*.test.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.5.0",
+    "express": "^5.1.0",
+    "express-validator": "^7.2.1",
+    "helmet": "^8.0.0",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.14.0"
+  }
 }
